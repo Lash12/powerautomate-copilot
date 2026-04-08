@@ -75,7 +75,7 @@ Once signed in, Copilot can use these tools automatically:
 | Setting | Default | Description |
 |---|---|---|
 | `powerAutomate.authMethod` | `auto` | Auth strategy: `auto` (Azure CLI → VS Code fallback), `azureCli`, or `vscode`. Use `azureCli` in corporate tenants. |
-| `powerAutomate.clientId` | `""` | Custom Azure AD client ID for the `vscode` auth method. Leave blank to use VS Code's built-in app. |
+| `powerAutomate.clientId` | `""` | Reserved for future use with the `vscode` auth method; currently not wired and has no effect. |
 | `powerAutomate.apiBaseUrl` | `https://api.flow.microsoft.com` | API base URL for sovereign clouds (GCC, GCC High, DoD). |
 | `powerAutomate.confirmDestructiveActions` | `true` | Require confirmation before updating or deleting live flows. |
 

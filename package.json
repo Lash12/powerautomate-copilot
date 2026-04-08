@@ -149,7 +149,7 @@
         "powerAutomate.clientId": {
           "type": "string",
           "default": "",
-          "description": "Azure AD Application (client) ID for VS Code auth method. Leave blank to use VS Code's built-in app. Only needed if your tenant requires a registered application for the VS Code auth flow."
+          "description": "Reserved for future use. Custom Azure AD Application (client) ID for the `vscode` auth method. Currently not wired — has no effect in v0.1."
         },
         "powerAutomate.apiBaseUrl": {
           "type": "string",
