@@ -20,6 +20,7 @@
     "url": "https://github.com/Lash12/powerautomate-copilot"
   },
   "license": "MIT",
+  "publisher": "Lash12",
   "contributes": {
     "commands": [
       {
