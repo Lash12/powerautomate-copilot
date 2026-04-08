@@ -10,6 +10,7 @@ import type {
   FlowTriggerUrl,
   PaApiListResponse,
 } from './types';
+import { logger } from '../utils/logger';
 
 const API_VERSION = '2016-11-01';
 
@@ -27,6 +28,9 @@ export class PowerAutomateClient {
   private async fetch<T>(path: string, options?: RequestInit): Promise<T> {
     const token = await this.auth.getAccessToken();
     const url = `${this.baseUrl}${path}`;
+    const method = options?.method ?? 'GET';
+    logger.debug(`${method} ${url}`);
+
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -47,8 +51,11 @@ export class PowerAutomateClient {
       } catch {
         // ignore JSON parse error
       }
+      logger.error(`${method} ${url} → ${errorMessage}`);
       throw new Error(`Power Automate API error: ${errorMessage}`);
     }
+
+    logger.debug(`${method} ${url} → ${response.status}`);
 
     if (response.status === 204) {
       return undefined as T;

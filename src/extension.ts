@@ -9,8 +9,11 @@ import {
   EnvironmentItem,
 } from './ui/treeView/EnvironmentsTreeProvider';
 import { registerAllTools } from './tools/registerTools';
+import { logger } from './utils/logger';
 
 export function activate(extensionContext: vscode.ExtensionContext): void {
+  logger.info('Power Automate Copilot activating');
+
   const auth = new AuthProvider();
   const client = new PowerAutomateClient(auth);
   const contextManager = new ContextManager(extensionContext.workspaceState);
@@ -89,6 +92,7 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
       async (item: FlowItem) => {
         await client.setFlowState(item.environmentName, item.flow.name, 'enabled');
         treeProvider.refresh();
+        logger.info(`Flow enabled: ${item.flow.properties.displayName}`);
         void vscode.window.showInformationMessage(
           `Flow "${item.flow.properties.displayName}" enabled.`
         );
@@ -100,11 +104,14 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
       async (item: FlowItem) => {
         await client.setFlowState(item.environmentName, item.flow.name, 'disabled');
         treeProvider.refresh();
+        logger.info(`Flow disabled: ${item.flow.properties.displayName}`);
         void vscode.window.showInformationMessage(
           `Flow "${item.flow.properties.displayName}" disabled.`
         );
       }
     ),
+
+    vscode.commands.registerCommand('powerAutomate.showLogs', () => logger.show()),
   ];
 
   // ── Initial Status Bar Refresh ─────────────────────────────────────────────
@@ -118,8 +125,11 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
     treeView,
     contextManager,
     ...commands,
-    ...toolDisposables
+    ...toolDisposables,
+    { dispose: () => logger.dispose() }
   );
+
+  logger.info('Power Automate Copilot activated');
 }
 
 export function deactivate(): void {
