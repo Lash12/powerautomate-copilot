@@ -1,0 +1,15 @@
+# Each line is a pattern followed by one or more owners.
+# Owners are automatically requested for review on PRs touching matched files.
+
+# Default: all files owned by the repo maintainer
+*                           @Lash12
+
+# Source code
+src/                        @Lash12
+
+# Workflows — changes here affect CI/CD security
+.github/workflows/          @Lash12
+
+# Dependency manifest — review for supply chain risk
+package.json                @Lash12
+package-lock.json           @Lash12

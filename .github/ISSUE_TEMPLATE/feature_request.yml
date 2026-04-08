@@ -1,0 +1,53 @@
+name: ✨ Feature Request
+description: Suggest a new tool, command, or improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for a new Power Automate tool or extension feature? We'd love to hear it!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or pain point this would address.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: What would the feature look like? How would you use it in Copilot Chat?
+      placeholder: |
+        e.g. "A tool that lists all connections in an environment so I can ask Copilot which flows depend on a given connection"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any other approaches you've thought of?
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - New Copilot LM Tool
+        - UI / UX improvement
+        - Auth / Enterprise support
+        - Performance
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Would you be willing to contribute this?
+      options:
+        - label: "Yes, I'd like to open a PR for this"

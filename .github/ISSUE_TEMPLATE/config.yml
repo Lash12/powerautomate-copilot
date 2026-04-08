@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion / Question
+    url: https://github.com/Lash12/powerautomate-copilot/discussions
+    about: Ask questions and discuss ideas here rather than opening an issue.
+  - name: 📖 Documentation
+    url: https://github.com/Lash12/powerautomate-copilot/blob/main/README.md
+    about: Check the README before opening an issue.

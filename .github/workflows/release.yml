@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Package extension
+        run: npx vsce package --no-dependencies
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Power Automate Copilot v${{ steps.version.outputs.version }}"
+          body: |
+            ## What's Changed
+
+            See [CHANGELOG.md](https://github.com/Lash12/powerautomate-copilot/blob/main/CHANGELOG.md) for full details.
+
+            ## Installation
+
+            Download the `.vsix` file below and install via:
+            ```
+            code --install-extension powerautomate-copilot-${{ steps.version.outputs.version }}.vsix
+            ```
+          files: '*.vsix'
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
