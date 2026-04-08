@@ -1,0 +1,497 @@
+{
+  "name": "powerautomate-copilot",
+  "displayName": "Power Automate Copilot",
+  "description": "Give GitHub Copilot native tools to build, debug, and manage Power Automate flows — entirely locally, no third-party server.",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": ["Other"],
+  "keywords": ["power-automate", "copilot", "mcp", "microsoft", "flow"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "icon": "resources/icon.png",
+  "galleryBanner": {
+    "color": "#0066FF",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lash12/powerautomate-copilot"
+  },
+  "license": "MIT",
+  "contributes": {
+    "commands": [
+      {
+        "command": "powerAutomate.signIn",
+        "title": "Sign In to Power Automate",
+        "category": "Power Automate"
+      },
+      {
+        "command": "powerAutomate.signOut",
+        "title": "Sign Out",
+        "category": "Power Automate"
+      },
+      {
+        "command": "powerAutomate.selectEnvironment",
+        "title": "Select Environment",
+        "category": "Power Automate",
+        "icon": "$(cloud)"
+      },
+      {
+        "command": "powerAutomate.selectFlow",
+        "title": "Select Active Flow",
+        "category": "Power Automate",
+        "icon": "$(play)"
+      },
+      {
+        "command": "powerAutomate.refreshTreeView",
+        "title": "Refresh",
+        "category": "Power Automate",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "powerAutomate.openFlowInBrowser",
+        "title": "Open in Browser",
+        "category": "Power Automate",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "powerAutomate.copyFlowId",
+        "title": "Copy Flow ID",
+        "category": "Power Automate"
+      },
+      {
+        "command": "powerAutomate.enableFlow",
+        "title": "Enable Flow",
+        "category": "Power Automate"
+      },
+      {
+        "command": "powerAutomate.disableFlow",
+        "title": "Disable Flow",
+        "category": "Power Automate"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "powerAutomate",
+          "title": "Power Automate",
+          "icon": "resources/activitybar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "powerAutomate": [
+        {
+          "id": "powerAutomate.environmentsView",
+          "name": "Environments & Flows",
+          "icon": "resources/activitybar-icon.svg"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "powerAutomate.refreshTreeView",
+          "when": "view == powerAutomate.environmentsView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "powerAutomate.openFlowInBrowser",
+          "when": "viewItem == flow",
+          "group": "navigation@1"
+        },
+        {
+          "command": "powerAutomate.copyFlowId",
+          "when": "viewItem == flow",
+          "group": "navigation@2"
+        },
+        {
+          "command": "powerAutomate.enableFlow",
+          "when": "viewItem == flow_disabled",
+          "group": "state@1"
+        },
+        {
+          "command": "powerAutomate.disableFlow",
+          "when": "viewItem == flow_enabled",
+          "group": "state@1"
+        },
+        {
+          "command": "powerAutomate.refreshTreeView",
+          "when": "viewItem == environment",
+          "group": "navigation@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Power Automate Copilot",
+      "properties": {
+        "powerAutomate.clientId": {
+          "type": "string",
+          "default": "",
+          "description": "Azure AD Application (client) ID. Leave blank to use the shared client ID. Provide your own for enterprise/sovereign cloud scenarios."
+        },
+        "powerAutomate.apiBaseUrl": {
+          "type": "string",
+          "default": "https://api.flow.microsoft.com",
+          "enum": [
+            "https://api.flow.microsoft.com",
+            "https://gov.api.flow.microsoft.us",
+            "https://high.api.flow.microsoft.us",
+            "https://api.flow.appsplatform.us"
+          ],
+          "enumDescriptions": [
+            "Global (Commercial)",
+            "US Government (GCC)",
+            "US Government High (GCC High)",
+            "US DoD"
+          ],
+          "description": "Power Automate API base URL. Change for sovereign cloud environments."
+        },
+        "powerAutomate.confirmDestructiveActions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require confirmation before updating or deleting live flows."
+        }
+      }
+    },
+    "languageModelTools": [
+      {
+        "name": "powerAutomate_listEnvironments",
+        "tags": ["power-automate", "environment"],
+        "displayName": "List Power Automate Environments",
+        "modelDescription": "Lists all Power Automate environments accessible to the signed-in user. Call this first to discover available environments before working with flows.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "name": "powerAutomate_listConnections",
+        "tags": ["power-automate", "connection"],
+        "displayName": "List Power Automate Connections",
+        "modelDescription": "Lists all connections available in the active (or specified) Power Automate environment.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_listFlows",
+        "tags": ["power-automate", "flow"],
+        "displayName": "List Power Automate Flows",
+        "modelDescription": "Lists all flows in the active (or specified) Power Automate environment, including their enabled/disabled state.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_getFlow",
+        "tags": ["power-automate", "flow"],
+        "displayName": "Get Power Automate Flow",
+        "modelDescription": "Gets the full definition (JSON) of a specific flow. Use this to inspect a flow's triggers, actions, and configuration.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_getFlowRuns",
+        "tags": ["power-automate", "flow", "debug"],
+        "displayName": "Get Flow Run History",
+        "modelDescription": "Gets the run history of a flow, including status (Succeeded/Failed/Running/Cancelled) and start/end times. Use this to identify recent failures.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            },
+            "top": {
+              "type": "number",
+              "description": "Maximum number of runs to return (default: 10)."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_getFlowRunError",
+        "tags": ["power-automate", "flow", "debug"],
+        "displayName": "Get Flow Run Error Details",
+        "modelDescription": "Gets per-action error details for a specific failed flow run. Use this after identifying a failed run with getFlowRuns to understand exactly which action failed and why.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["runName"],
+          "properties": {
+            "runName": {
+              "type": "string",
+              "description": "The run ID to inspect."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_getFlowRunActionOutputs",
+        "tags": ["power-automate", "flow", "debug"],
+        "displayName": "Get Flow Run Action Inputs/Outputs",
+        "modelDescription": "Inspects the inputs and outputs of a specific action within a flow run. Useful for debugging data transformation issues.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["runName", "actionName"],
+          "properties": {
+            "runName": {
+              "type": "string",
+              "description": "The run ID."
+            },
+            "actionName": {
+              "type": "string",
+              "description": "The action name within the run."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_getFlowHttpSchema",
+        "tags": ["power-automate", "flow"],
+        "displayName": "Get Flow HTTP Trigger Schema",
+        "modelDescription": "Gets the HTTP trigger request and response schema for a flow. Use this before triggering a flow to know what payload to send.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_getFlowTriggerUrl",
+        "tags": ["power-automate", "flow"],
+        "displayName": "Get Flow Trigger URL",
+        "modelDescription": "Gets the signed callback URL for an HTTP-triggered flow. The URL includes an auth signature and can be used to trigger the flow directly.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_updateFlow",
+        "tags": ["power-automate", "flow"],
+        "displayName": "Create or Update a Flow",
+        "modelDescription": "Creates a new flow or updates an existing flow definition. Provide the full flow JSON. The user will be asked to confirm before any update is applied to a live flow.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["flowDefinition"],
+          "properties": {
+            "flowDefinition": {
+              "type": "object",
+              "description": "The full Power Automate flow definition JSON."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID to update. Omit to create a new flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_setFlowState",
+        "tags": ["power-automate", "flow"],
+        "displayName": "Enable or Disable a Flow",
+        "modelDescription": "Enables or disables a flow. Use this to turn a flow on or off without modifying its definition.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["state"],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": ["enabled", "disabled"],
+              "description": "The desired state of the flow."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_addFlowToSolution",
+        "tags": ["power-automate", "flow", "solution"],
+        "displayName": "Add Flow to Solution",
+        "modelDescription": "Migrates a flow into a Power Platform solution. Solutions are required for ALM/deployment pipelines.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["solutionId"],
+          "properties": {
+            "solutionId": {
+              "type": "string",
+              "description": "The solution unique name or ID to add the flow to."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_triggerFlow",
+        "tags": ["power-automate", "flow"],
+        "displayName": "Trigger a Flow",
+        "modelDescription": "Fires an HTTP-triggered flow with an optional JSON payload. Use getFlowHttpSchema first to know what payload the trigger expects.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "body": {
+              "type": "object",
+              "description": "Optional JSON payload to send to the HTTP trigger."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_resubmitFlowRun",
+        "tags": ["power-automate", "flow", "debug"],
+        "displayName": "Resubmit a Failed Flow Run",
+        "modelDescription": "Resubmits a previously failed flow run with the same inputs. Use this after fixing the underlying issue to re-run without manually re-triggering.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["runName"],
+          "properties": {
+            "runName": {
+              "type": "string",
+              "description": "The run ID to resubmit."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_cancelFlowRun",
+        "tags": ["power-automate", "flow"],
+        "displayName": "Cancel a Running Flow",
+        "modelDescription": "Cancels a flow run that is currently in progress.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["runName"],
+          "properties": {
+            "runName": {
+              "type": "string",
+              "description": "The run ID to cancel."
+            },
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.87.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^2.24.0"
+  }
+}
