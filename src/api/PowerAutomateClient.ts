@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import type { AuthProvider } from '../auth/AuthProvider';
 import type {
   Connection,
@@ -12,22 +11,26 @@ import type {
 } from './types';
 import { logger } from '../utils/logger';
 
-const API_VERSION = '2016-11-01';
+// Power Platform API version for cloud flow and flow run operations.
+const PP_API_VERSION = '2022-03-01-preview';
+
+// BAP API version for environment management.
+// Matches what the official microsoft/powerplatform-vscode extension uses.
+const BAP_API_VERSION = '2021-04-01';
+
+// Fields to select from the BAP environments API to avoid over-fetching.
+const BAP_ENV_SELECT = 'name,properties.displayName,properties.environmentSku,properties.isDefault,properties.linkedEnvironmentMetadata';
 
 export class PowerAutomateClient {
-  private get baseUrl(): string {
-    return (
-      vscode.workspace
-        .getConfiguration('powerAutomate')
-        .get<string>('apiBaseUrl') ?? 'https://api.flow.microsoft.com'
-    );
-  }
-
   constructor(private readonly auth: AuthProvider) {}
 
-  private async fetch<T>(path: string, options?: RequestInit): Promise<T> {
-    const token = await this.auth.getAccessToken();
-    const url = `${this.baseUrl}${path}`;
+  private async fetchWithToken<T>(
+    baseUrl: string,
+    token: string,
+    path: string,
+    options?: RequestInit
+  ): Promise<T> {
+    const url = `${baseUrl}${path}`;
     const method = options?.method ?? 'GET';
     logger.debug(`${method} ${url}`);
 
@@ -64,89 +67,118 @@ export class PowerAutomateClient {
     return response.json() as Promise<T>;
   }
 
-  private async fetchAll<T>(path: string): Promise<T[]> {
+  private async fetchAllWithToken<T>(
+    baseUrl: string,
+    token: string,
+    path: string
+  ): Promise<T[]> {
     const results: T[] = [];
     let currentPath: string | undefined = path;
     while (currentPath) {
-      const page: PaApiListResponse<T> = await this.fetch<PaApiListResponse<T>>(currentPath);
+      const page: PaApiListResponse<T> = await this.fetchWithToken<PaApiListResponse<T>>(
+        baseUrl,
+        token,
+        currentPath
+      );
       results.push(...page.value);
       currentPath = page.nextLink
-        ? page.nextLink.replace(this.baseUrl, '')
+        ? page.nextLink.replace(baseUrl, '')
         : undefined;
     }
     return results;
   }
 
   // ── Environments ─────────────────────────────────────────────────────────
+  //
+  // Uses the Business Application Platform (BAP) API with BAP scope
+  // (https://api.bap.microsoft.com/.default). This scope is pre-authorized
+  // for VS Code's built-in Microsoft auth provider in corporate tenants,
+  // unlike the legacy service.flow.microsoft.com scope.
 
   async listEnvironments(): Promise<Environment[]> {
-    return this.fetchAll<Environment>(
-      `/providers/Microsoft.ProcessSimple/environments?api-version=${API_VERSION}`
+    const token = await this.auth.getBapToken();
+    return this.fetchAllWithToken<Environment>(
+      this.auth.bapBaseUrl,
+      token,
+      `/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments?api-version=${BAP_API_VERSION}&select=${BAP_ENV_SELECT}`
     );
   }
 
   // ── Connections ───────────────────────────────────────────────────────────
+  //
+  // Connection management is not yet available in the Power Platform API.
+  // This will be implemented when the API adds connection support.
 
-  async listConnections(environmentName: string): Promise<Connection[]> {
-    return this.fetchAll<Connection>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/connections?api-version=${API_VERSION}`
+  async listConnections(_environmentName: string): Promise<Connection[]> {
+    throw new Error(
+      'Connection listing is not yet available via the Power Platform API. ' +
+      'View connections in the Power Automate portal.'
     );
   }
 
   // ── Flows ─────────────────────────────────────────────────────────────────
+  //
+  // Uses the Power Platform API (api.powerplatform.com) with PP API scope.
+  // Note: This endpoint returns solution-aware flows only. Flows under
+  // "My Flows" (non-solution flows) are not returned by this API.
+  //
+  // TODO: Migrate to the GA Power Platform API when it achieves full feature
+  // parity with the legacy service.flow.microsoft.com endpoints.
 
   async listFlows(environmentName: string): Promise<Flow[]> {
-    return this.fetchAll<Flow>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows?api-version=${API_VERSION}&$expand=properties.definition`
+    const token = await this.auth.getPpApiToken();
+    return this.fetchAllWithToken<Flow>(
+      this.auth.ppApiBaseUrl,
+      token,
+      `/powerautomate/environments/${encodeURIComponent(environmentName)}/cloudFlows?api-version=${PP_API_VERSION}`
     );
   }
 
   async getFlow(environmentName: string, flowName: string): Promise<Flow> {
-    return this.fetch<Flow>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}?api-version=${API_VERSION}&$expand=properties.definition`
+    const token = await this.auth.getPpApiToken();
+    // The PP API does not have a single-flow GET; filter the list by workflowId.
+    const flows = await this.fetchAllWithToken<Flow>(
+      this.auth.ppApiBaseUrl,
+      token,
+      `/powerautomate/environments/${encodeURIComponent(environmentName)}/cloudFlows?workflowId=${encodeURIComponent(flowName)}&api-version=${PP_API_VERSION}`
     );
+    const flow = flows[0];
+    if (!flow) {
+      throw new Error(`Flow not found: ${flowName}`);
+    }
+    return flow;
   }
 
   async createOrUpdateFlow(
-    environmentName: string,
-    flowName: string | undefined,
-    definition: Record<string, unknown>
+    _environmentName: string,
+    _flowName: string | undefined,
+    _definition: Record<string, unknown>
   ): Promise<Flow> {
-    const path = flowName
-      ? `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}?api-version=${API_VERSION}`
-      : `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows?api-version=${API_VERSION}`;
-
-    return this.fetch<Flow>(path, {
-      method: flowName ? 'PATCH' : 'POST',
-      body: JSON.stringify({ properties: { definition } }),
-    });
+    throw new Error(
+      'Creating or updating flows is not yet available via the Power Platform API. ' +
+      'Use the Power Automate portal to create or edit flows.'
+    );
   }
 
   async setFlowState(
-    environmentName: string,
-    flowName: string,
-    state: 'enabled' | 'disabled'
+    _environmentName: string,
+    _flowName: string,
+    _state: 'enabled' | 'disabled'
   ): Promise<void> {
-    await this.fetch<void>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/${state === 'enabled' ? 'start' : 'stop'}?api-version=${API_VERSION}`,
-      { method: 'POST' }
+    throw new Error(
+      'Enabling/disabling flows is not yet available via the Power Platform API. ' +
+      'Use the Power Automate portal to enable or disable flows.'
     );
   }
 
   async addFlowToSolution(
-    environmentName: string,
-    flowName: string,
-    solutionId: string
+    _environmentName: string,
+    _flowName: string,
+    _solutionId: string
   ): Promise<void> {
-    await this.fetch<void>(
-      `/providers/Microsoft.PowerApps/environments/${encodeURIComponent(environmentName)}/addToSolution?api-version=${API_VERSION}`,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          resourceIds: [flowName],
-          solutionUniqueName: solutionId,
-        }),
-      }
+    throw new Error(
+      'Adding flows to solutions is not yet available via the Power Platform API. ' +
+      'Use the Power Automate portal to manage solution membership.'
     );
   }
 
@@ -157,105 +189,88 @@ export class PowerAutomateClient {
     flowName: string,
     top = 10
   ): Promise<FlowRun[]> {
-    const runs = await this.fetchAll<FlowRun>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/runs?api-version=${API_VERSION}&$top=${top}`
+    const token = await this.auth.getPpApiToken();
+    const runs = await this.fetchAllWithToken<FlowRun>(
+      this.auth.ppApiBaseUrl,
+      token,
+      `/powerautomate/environments/${encodeURIComponent(environmentName)}/flowRuns?workflowId=${encodeURIComponent(flowName)}&api-version=${PP_API_VERSION}`
     );
     return runs.slice(0, top);
   }
 
   async getFlowRunActions(
-    environmentName: string,
-    flowName: string,
-    runName: string
+    _environmentName: string,
+    _flowName: string,
+    _runName: string
   ): Promise<FlowRunAction[]> {
-    return this.fetchAll<FlowRunAction>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/runs/${encodeURIComponent(runName)}/actions?api-version=${API_VERSION}`
+    throw new Error(
+      'Flow run action details are not yet available via the Power Platform API. ' +
+      'View action-level details in the Power Automate portal run history.'
     );
   }
 
   async getFlowRunActionInputsOutputs(
-    environmentName: string,
-    flowName: string,
-    runName: string,
-    actionName: string
+    _environmentName: string,
+    _flowName: string,
+    _runName: string,
+    _actionName: string
   ): Promise<{ inputs: unknown; outputs: unknown }> {
-    const action = await this.fetch<FlowRunAction>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/runs/${encodeURIComponent(runName)}/actions/${encodeURIComponent(actionName)}?api-version=${API_VERSION}`
+    throw new Error(
+      'Flow run action inputs/outputs are not yet available via the Power Platform API.'
     );
-
-    const [inputs, outputs] = await Promise.all([
-      action.properties.inputsLink?.uri
-        ? fetch(action.properties.inputsLink.uri).then((r) => r.json())
-        : Promise.resolve(null),
-      action.properties.outputsLink?.uri
-        ? fetch(action.properties.outputsLink.uri).then((r) => r.json())
-        : Promise.resolve(null),
-    ]);
-
-    return { inputs, outputs };
   }
 
   async resubmitFlowRun(
-    environmentName: string,
-    flowName: string,
-    runName: string
+    _environmentName: string,
+    _flowName: string,
+    _runName: string
   ): Promise<void> {
-    await this.fetch<void>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/runs/${encodeURIComponent(runName)}/resubmit?api-version=${API_VERSION}`,
-      { method: 'POST' }
+    throw new Error(
+      'Resubmitting flow runs is not yet available via the Power Platform API. ' +
+      'Use the Power Automate portal to resubmit failed runs.'
     );
   }
 
   async cancelFlowRun(
-    environmentName: string,
-    flowName: string,
-    runName: string
+    _environmentName: string,
+    _flowName: string,
+    _runName: string
   ): Promise<void> {
-    await this.fetch<void>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/runs/${encodeURIComponent(runName)}/cancel?api-version=${API_VERSION}`,
-      { method: 'POST' }
+    throw new Error(
+      'Cancelling flow runs is not yet available via the Power Platform API. ' +
+      'Use the Power Automate portal to cancel running flows.'
     );
   }
 
   // ── Trigger ───────────────────────────────────────────────────────────────
 
   async getFlowHttpSchema(
-    environmentName: string,
-    flowName: string
+    _environmentName: string,
+    _flowName: string
   ): Promise<FlowTriggerSchema> {
-    return this.fetch<FlowTriggerSchema>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/triggers/manual/schema?api-version=${API_VERSION}`
+    throw new Error(
+      'HTTP trigger schema retrieval is not yet available via the Power Platform API.'
     );
   }
 
   async getFlowTriggerUrl(
-    environmentName: string,
-    flowName: string
+    _environmentName: string,
+    _flowName: string
   ): Promise<FlowTriggerUrl> {
-    return this.fetch<FlowTriggerUrl>(
-      `/providers/Microsoft.ProcessSimple/environments/${encodeURIComponent(environmentName)}/flows/${encodeURIComponent(flowName)}/triggers/manual/listCallbackUrl?api-version=${API_VERSION}`,
-      { method: 'POST' }
+    throw new Error(
+      'Trigger URL retrieval is not yet available via the Power Platform API. ' +
+      'Retrieve the trigger URL from the flow details in the Power Automate portal.'
     );
   }
 
   async triggerFlow(
-    environmentName: string,
-    flowName: string,
-    body?: Record<string, unknown>
+    _environmentName: string,
+    _flowName: string,
+    _body?: Record<string, unknown>
   ): Promise<unknown> {
-    const urlData = await this.getFlowTriggerUrl(environmentName, flowName);
-    const response = await fetch(urlData.value, {
-      method: urlData.method ?? 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (!response.ok) {
-      throw new Error(`Flow trigger failed: HTTP ${response.status} ${response.statusText}`);
-    }
-    try {
-      return await response.json();
-    } catch {
-      return { status: response.status };
-    }
+    throw new Error(
+      'Triggering flows is not yet available via the Power Platform API. ' +
+      'Use the flow\'s HTTP trigger URL from the Power Automate portal.'
+    );
   }
 }

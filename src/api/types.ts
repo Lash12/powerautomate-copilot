@@ -1,4 +1,8 @@
 // All shared types for the Power Automate API
+//
+// Shapes are aligned with:
+//  - BAP API (api.bap.microsoft.com) for environments
+//  - Power Platform API (api.powerplatform.com) for cloud flows and flow runs
 
 export interface Environment {
   name: string;
@@ -7,10 +11,15 @@ export interface Environment {
   location: string;
   properties: {
     displayName: string;
-    createdTime: string;
+    createdTime?: string;
     createdBy?: { id: string; displayName: string; email: string };
     environmentSku: 'Production' | 'Sandbox' | 'Trial' | 'Default';
     isDefault: boolean;
+    linkedEnvironmentMetadata?: {
+      instanceApiUrl?: string;
+      domainName?: string;
+      schemaType?: string;
+    };
   };
 }
 
@@ -23,11 +32,15 @@ export interface Flow {
     state: 'Started' | 'Stopped' | 'Suspended';
     createdTime: string;
     lastModifiedTime: string;
+    // workflowId is the Dataverse workflow GUID (equals flow name for solution flows).
+    workflowId?: string;
+    // flowTriggerUri is available in the legacy flow API; not returned by the PP API.
     flowTriggerUri?: string;
     definitionSummary?: {
       triggers: Array<{ type: string; kind?: string }>;
       actions: Array<{ type: string }>;
     };
+    // Full flow definition is not returned by the Power Platform API.
     definition?: Record<string, unknown>;
   };
 }
@@ -42,7 +55,9 @@ export interface FlowRun {
     status: 'Running' | 'Succeeded' | 'Failed' | 'Cancelled' | 'TimedOut';
     code?: string;
     error?: { code: string; message: string };
-    trigger: { name: string; inputsLink?: { uri: string }; outputsLink?: { uri: string } };
+    // trigger details may not be present in all API versions
+    trigger?: { name: string; inputsLink?: { uri: string }; outputsLink?: { uri: string } };
+    workflowId?: string;
   };
 }
 

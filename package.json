@@ -142,12 +142,12 @@
         },
         "powerAutomate.apiBaseUrl": {
           "type": "string",
-          "default": "https://api.flow.microsoft.com",
+          "default": "https://api.powerplatform.com",
           "enum": [
-            "https://api.flow.microsoft.com",
-            "https://gov.api.flow.microsoft.us",
-            "https://high.api.flow.microsoft.us",
-            "https://api.flow.appsplatform.us"
+            "https://api.powerplatform.com",
+            "https://api.gov.powerplatform.microsoft.us",
+            "https://api.high.powerplatform.microsoft.us",
+            "https://api.appsplatform.us"
           ],
           "enumDescriptions": [
             "Global (Commercial)",
@@ -155,7 +155,7 @@
             "US Government High (GCC High)",
             "US DoD"
           ],
-          "description": "Power Automate API base URL. Change for sovereign cloud environments."
+          "description": "Power Platform API base URL. Change for sovereign cloud environments."
         },
         "powerAutomate.confirmDestructiveActions": {
           "type": "boolean",
