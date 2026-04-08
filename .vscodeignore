@@ -9,3 +9,7 @@ tsconfig.json
 **/*.ts
 !dist/**
 node_modules/**
+.github/**
+CONTRIBUTING.md
+CODEOWNERS
+*.vsix
