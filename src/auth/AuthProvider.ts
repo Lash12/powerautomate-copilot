@@ -94,27 +94,50 @@ export class AuthProvider {
   }
 
   async isSignedIn(): Promise<boolean> {
-    try {
-      await this.getAccessToken();
-      return true;
-    } catch {
-      return false;
+    const method = this.authMethod;
+
+    // Use silent/non-interactive checks only — never trigger a login prompt
+    if (method === 'azureCli' || method === 'auto') {
+      // Valid cached CLI token counts as signed in
+      if (this._cliTokenCache) {
+        const bufferMs = 2 * 60 * 1000;
+        if (this._cliTokenCache.expiresAt.getTime() - Date.now() > bufferMs) {
+          return true;
+        }
+      }
+      // No cache — silently check if az has an active account
+      const info = await this._getCliAccountInfo();
+      if (info !== null) {
+        return true;
+      }
+      if (method === 'azureCli') {
+        return false;
+      }
+      // auto: fall through to VS Code silent check
     }
+
+    const session = await vscode.authentication.getSession(
+      VSCODE_PROVIDER_ID,
+      [PA_SCOPE, OFFLINE_ACCESS],
+      { createIfNone: false, silent: true }
+    );
+    return session !== undefined;
   }
 
   async signIn(): Promise<void> {
     const method = this.authMethod;
 
     if (method === 'azureCli') {
-      // Guide the user through az login
+      // Guide the user to run az login, then verify auth actually works
       const choice = await vscode.window.showInformationMessage(
-        'Power Automate Copilot is configured to use Azure CLI authentication. Run `az login` in your terminal to sign in.',
+        'Power Automate Copilot is configured to use Azure CLI authentication. Run `az login` in your terminal to sign in, then try again.',
         'Open Terminal'
       );
       if (choice === 'Open Terminal') {
         await vscode.commands.executeCommand('workbench.action.terminal.new');
       }
-      this._onDidChangeSignInState.fire(true);
+      // Do NOT fire the event yet — the user hasn't authenticated.
+      // StatusBarManager.refresh() will pick up the state once az login completes.
       return;
     }
 
@@ -177,9 +200,19 @@ export class AuthProvider {
     ]);
 
     const parsed = JSON.parse(result) as AzureCliTokenResponse;
-    const expiresAt = new Date(parsed.expiresOn);
 
-    this._cliTokenCache = { token: parsed.accessToken, expiresAt };
+    // `expiresOn` from the Azure CLI is "YYYY-MM-DD HH:mm:ss.ffffff" (local time,
+    // not ISO 8601). Normalise to ISO by replacing the space separator with 'T'.
+    // If parsing still fails, fall back to 55 minutes from now (safe default).
+    const normalised = parsed.expiresOn.replace(' ', 'T');
+    const expiresAt = new Date(normalised);
+    const validExpiry = !isNaN(expiresAt.getTime());
+    if (!validExpiry) {
+      logger.warn(`Auth: could not parse CLI token expiry "${parsed.expiresOn}", defaulting to 55 min`);
+    }
+    const resolvedExpiry = validExpiry ? expiresAt : new Date(Date.now() + 55 * 60 * 1000);
+
+    this._cliTokenCache = { token: parsed.accessToken, expiresAt: resolvedExpiry };
     return parsed.accessToken;
   }
 
