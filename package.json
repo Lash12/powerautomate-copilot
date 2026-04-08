@@ -129,10 +129,21 @@
     "configuration": {
       "title": "Power Automate Copilot",
       "properties": {
+        "powerAutomate.authMethod": {
+          "type": "string",
+          "default": "auto",
+          "enum": ["auto", "azureCli", "vscode"],
+          "enumDescriptions": [
+            "Try Azure CLI first; fall back to VS Code Microsoft auth. Best for mixed environments.",
+            "Use Azure CLI only (`az account get-access-token`). Best for enterprise/corporate tenants where user consent is disabled. Requires `az login` in your terminal.",
+            "Use VS Code's built-in Microsoft authentication. Best for personal/developer accounts. May require admin consent in strict corporate tenants."
+          ],
+          "description": "Authentication method for connecting to Power Automate. Use `azureCli` in corporate tenants where user consent is disabled by tenant policy."
+        },
         "powerAutomate.clientId": {
           "type": "string",
           "default": "",
-          "description": "Azure AD Application (client) ID. Leave blank to use the shared client ID. Provide your own for enterprise/sovereign cloud scenarios."
+          "description": "Azure AD Application (client) ID for VS Code auth method. Leave blank to use VS Code's built-in app. Only needed if your tenant requires a registered application for the VS Code auth flow."
         },
         "powerAutomate.apiBaseUrl": {
           "type": "string",

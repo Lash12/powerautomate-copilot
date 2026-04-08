@@ -22,12 +22,21 @@ Most Power Automate AI tooling routes your flow data through third-party servers
 
 ## Getting Started
 
-1. Install the extension from the VS Code Marketplace
+### Corporate / Enterprise tenants (recommended)
+
+If you work in an organization managed by IT, use **Azure CLI authentication** — it works with your existing permissions and requires no admin approval or new app registrations:
+
+1. Install [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) if not already installed
+2. Run `az login` in your terminal and sign in with your work account
+3. In VS Code settings, set `powerAutomate.authMethod` to `azureCli` (or leave as `auto`)
+4. Select your environment from the status bar and start using Copilot
+
+### Personal / Developer accounts
+
+1. Install the extension
 2. Click **Sign in to Power Automate** in the status bar
 3. Authorize the Power Platform scopes when prompted
-4. Select your environment from the status bar or the **Power Automate** sidebar
-5. Select an active flow
-6. Open Copilot Chat and start asking!
+4. Select your environment and start using Copilot
 
 ## Available Copilot Tools
 
@@ -65,20 +74,21 @@ Once signed in, Copilot can use these tools automatically:
 
 | Setting | Default | Description |
 |---|---|---|
-| `powerAutomate.clientId` | `""` | Custom Azure AD client ID. Leave blank to use the shared ID. |
+| `powerAutomate.authMethod` | `auto` | Auth strategy: `auto` (Azure CLI → VS Code fallback), `azureCli`, or `vscode`. Use `azureCli` in corporate tenants. |
+| `powerAutomate.clientId` | `""` | Custom Azure AD client ID for the `vscode` auth method. Leave blank to use VS Code's built-in app. |
 | `powerAutomate.apiBaseUrl` | `https://api.flow.microsoft.com` | API base URL for sovereign clouds (GCC, GCC High, DoD). |
 | `powerAutomate.confirmDestructiveActions` | `true` | Require confirmation before updating or deleting live flows. |
 
 ## Enterprise / Sovereign Cloud
 
-For GCC, GCC High, or DoD tenants, set `powerAutomate.apiBaseUrl` to the appropriate endpoint in your VS Code settings.
+For GCC, GCC High, or DoD tenants, set `powerAutomate.apiBaseUrl` to the appropriate endpoint and use `az login --tenant <tenant-id>` to authenticate against the correct cloud.
 
-If your tenant requires admin consent for application permissions, an administrator will need to grant consent for the Power Platform OAuth scopes (`https://service.flow.microsoft.com/user_impersonation`). See the [Microsoft docs](https://learn.microsoft.com/en-us/power-platform/admin/powershell-create-service-principal) for details.
+**No admin approval or app registration is required** as long as you authenticate via Azure CLI (`az login`). Your existing Power Platform environment access is used as-is. See [docs/azure-app-registration.md](docs/azure-app-registration.md) for the full authentication guide.
 
 ## Security
 
-- Authentication uses VS Code's built-in Microsoft OAuth provider
-- Tokens are stored in VS Code's `SecretStorage` (OS keychain)
+- Azure CLI auth uses Microsoft's own pre-approved tooling — no new OAuth consent required
+- VS Code auth tokens are stored in VS Code's `SecretStorage` (OS keychain)
 - No data is logged or sent to any third-party service
 - See [SECURITY.md](SECURITY.md) for the full security policy
 

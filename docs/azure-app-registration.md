@@ -1,47 +1,105 @@
-# Azure AD App Registration Guide
+# Authentication Guide
 
-## Default: No Registration Required
+## How Authentication Works
 
-By default, **Power Automate Copilot uses VS Code's built-in Microsoft authentication provider**, which uses VS Code's own Azure AD application to handle OAuth. This means:
+Power Automate Copilot supports two authentication strategies, controlled by the `powerAutomate.authMethod` setting:
 
-- ✅ No app registration needed for most users
-- ✅ Works immediately after install — just click "Sign In"
-- ✅ Consent is scoped to `https://service.flow.microsoft.com/user_impersonation`
+| Method | Setting value | Best for |
+|---|---|---|
+| **Azure CLI** | `azureCli` | Corporate/enterprise tenants |
+| **VS Code Microsoft auth** | `vscode` | Personal / M365 developer accounts |
+| **Auto (default)** | `auto` | Tries Azure CLI first, falls back to VS Code auth |
 
-## Enterprise / Custom Client ID
+---
 
-Some organizations may require all OAuth apps to use tenant-registered applications (e.g., via Conditional Access policies or restricted app consent).
+## Azure CLI Authentication (Recommended for Enterprise)
 
-In these cases, create your own Azure AD App Registration:
+### Why this works without IT involvement
 
-### Steps
+The Azure CLI is a **Microsoft first-party tool** that is pre-approved in virtually all enterprise Azure AD tenants. When you run `az login`, you authenticate with your work account and consent to the Azure CLI app once. After that, the extension can silently request tokens for any service your account already has access to — including Power Automate — **without any additional consent dialog or admin approval**.
+
+Your existing Power Platform licenses and environment access are fully respected. If you can open `make.powerautomate.com` in a browser with your work account, this will work.
+
+### Setup
+
+1. Install [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) (one-time)
+2. In your terminal, run:
+   ```bash
+   az login
+   ```
+3. If your tenant uses Conditional Access or MFA, follow the prompts
+4. In VS Code settings, set:
+   ```json
+   { "powerAutomate.authMethod": "azureCli" }
+   ```
+   (Or leave it as `auto` — Azure CLI will be preferred automatically if available)
+
+### Multi-tenant / switching accounts
+
+```bash
+# List available subscriptions/tenants
+az account list --output table
+
+# Switch to a specific tenant
+az login --tenant <tenant-id>
+```
+
+---
+
+## VS Code Microsoft Auth (Personal / Developer Accounts)
+
+Uses VS Code's built-in Microsoft authentication provider. A consent dialog appears on first use.
+
+**This may fail in corporate tenants if:**
+- Your tenant admin has disabled user consent for new apps
+- Your tenant requires admin pre-approval for all OAuth apps
+- Your tenant has Conditional Access policies blocking VS Code's app registration
+
+If you see a "consent required" or "unauthorized" error, switch to `azureCli`.
+
+---
+
+## Enterprise Tenant — Custom App Registration
+
+If your organization requires all OAuth apps to be registered in your own tenant (and Azure CLI is not an option), you can register your own app:
 
 1. Go to [Azure Portal → App Registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps)
-2. Click **New registration**
-   - Name: `Power Automate Copilot` (or any name)
-   - Supported account types: **Accounts in any organizational directory** (or your tenant only)
+2. **New registration**
+   - Name: `Power Automate Copilot`
+   - Supported account types: **Accounts in this organizational directory only**
    - Redirect URI: `vscode://vscode.microsoft-authentication` (type: Web)
-3. After creation, note the **Application (client) ID**
-4. Under **API permissions**, add:
+3. Note the **Application (client) ID**
+4. **API permissions** → Add:
    - `https://service.flow.microsoft.com/user_impersonation` (Delegated)
-   - `offline_access` (Delegated, under Microsoft Graph)
-5. If required by your tenant, have an admin **grant admin consent**
+   - `offline_access` (Delegated)
+5. Have an admin **Grant admin consent**
+6. Configure:
+   ```json
+   {
+     "powerAutomate.authMethod": "vscode",
+     "powerAutomate.clientId": "<YOUR_CLIENT_ID>"
+   }
+   ```
 
-### Configure the Extension
+> **Note:** Custom `clientId` is not yet wired into the VS Code auth provider in v0.1 — this is on the roadmap. For now, Azure CLI is the recommended enterprise path.
 
-Set your client ID in VS Code settings:
+---
+
+## Sovereign Cloud Environments
+
+Change the API endpoint to match your cloud:
 
 ```json
 {
-  "powerAutomate.clientId": "<YOUR_CLIENT_ID>"
+  "powerAutomate.apiBaseUrl": "https://gov.api.flow.microsoft.us"
 }
 ```
 
-## Scopes Used
-
-| Scope | Purpose |
+| Cloud | API Base URL |
 |---|---|
-| `https://service.flow.microsoft.com/user_impersonation` | Read and manage Power Automate flows on the user's behalf |
-| `offline_access` | Enables silent token refresh without re-prompting the user |
+| Commercial (default) | `https://api.flow.microsoft.com` |
+| GCC | `https://gov.api.flow.microsoft.us` |
+| GCC High | `https://high.api.flow.microsoft.us` |
+| DoD | `https://api.flow.appsplatform.us` |
 
-> **Note:** These scopes grant access to Power Automate only. The extension never requests access to email, calendar, SharePoint, or any other Microsoft service.
+For GCC/GCC High/DoD, also use `az login --tenant <tenant-id>` to ensure you're authenticated against the correct cloud.
