@@ -189,13 +189,18 @@ export class PowerAutomateClient {
     flowName: string,
     top = 10
   ): Promise<FlowRun[]> {
+    const normalizedTop = Math.max(0, Math.floor(top));
+    if (normalizedTop === 0) {
+      return [];
+    }
+
     const token = await this.auth.getPpApiToken();
     const runs = await this.fetchAllWithToken<FlowRun>(
       this.auth.ppApiBaseUrl,
       token,
-      `/powerautomate/environments/${encodeURIComponent(environmentName)}/flowRuns?workflowId=${encodeURIComponent(flowName)}&api-version=${PP_API_VERSION}`
+      `/powerautomate/environments/${encodeURIComponent(environmentName)}/flowRuns?workflowId=${encodeURIComponent(flowName)}&api-version=${PP_API_VERSION}&$top=${encodeURIComponent(String(normalizedTop))}`
     );
-    return runs.slice(0, top);
+    return runs.slice(0, normalizedTop);
   }
 
   async getFlowRunActions(

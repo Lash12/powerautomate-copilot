@@ -73,7 +73,7 @@ Once signed in, Copilot can use these tools automatically:
 
 The extension uses Microsoft first-party API scopes (`api.bap.microsoft.com/.default` and `api.powerplatform.com/.default`) that are pre-authorized in all Microsoft Entra tenants — **no app registration or admin consent is required**.
 
-For GCC, GCC High, or DoD tenants, set `powerAutomate.apiBaseUrl` to the appropriate endpoint. See [docs/azure-app-registration.md](docs/azure-app-registration.md) for the full list of sovereign cloud URLs and troubleshooting guidance.
+For GCC, GCC High, or DoD tenants, set `powerAutomate.apiBaseUrl` to the appropriate endpoint. See [docs/authentication.md](docs/authentication.md) for the full list of sovereign cloud URLs and troubleshooting guidance.
 
 ## Security
 

@@ -45,11 +45,13 @@ export class AuthProvider {
   readonly onDidChangeSignInState = this._onDidChangeSignInState.event;
 
   private get configuredPpApiBaseUrl(): string {
-    return (
+    const raw =
       vscode.workspace
         .getConfiguration('powerAutomate')
-        .get<string>('apiBaseUrl') ?? 'https://api.powerplatform.com'
-    );
+        .get<string>('apiBaseUrl') ?? 'https://api.powerplatform.com';
+    // Normalize: trim whitespace, strip trailing slashes, lowercase so map lookups
+    // succeed even if the user enters "https://api.powerplatform.com/" or mixed case.
+    return raw.trim().toLowerCase().replace(/\/+$/, '');
   }
 
   /** The Power Platform API base URL for the configured cloud. */

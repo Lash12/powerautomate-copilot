@@ -98,7 +98,8 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
             `Flow "${item.flow.properties.displayName}" enabled.`
           );
         } catch (e) {
-          void vscode.window.showErrorMessage(String(e));
+          logger.error(e instanceof Error ? e.stack ?? e.message : String(e));
+          void vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e));
         }
       }
     ),
@@ -114,7 +115,8 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
             `Flow "${item.flow.properties.displayName}" disabled.`
           );
         } catch (e) {
-          void vscode.window.showErrorMessage(String(e));
+          logger.error(e instanceof Error ? e.stack ?? e.message : String(e));
+          void vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e));
         }
       }
     ),
