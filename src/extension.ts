@@ -90,24 +90,34 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(
       'powerAutomate.enableFlow',
       async (item: FlowItem) => {
-        await client.setFlowState(item.environmentName, item.flow.name, 'enabled');
-        treeProvider.refresh();
-        logger.info(`Flow enabled: ${item.flow.properties.displayName}`);
-        void vscode.window.showInformationMessage(
-          `Flow "${item.flow.properties.displayName}" enabled.`
-        );
+        try {
+          await client.setFlowState(item.environmentName, item.flow.name, 'enabled');
+          treeProvider.refresh();
+          logger.info(`Flow enabled: ${item.flow.properties.displayName}`);
+          void vscode.window.showInformationMessage(
+            `Flow "${item.flow.properties.displayName}" enabled.`
+          );
+        } catch (e) {
+          logger.error(e instanceof Error ? e.stack ?? e.message : String(e));
+          void vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e));
+        }
       }
     ),
 
     vscode.commands.registerCommand(
       'powerAutomate.disableFlow',
       async (item: FlowItem) => {
-        await client.setFlowState(item.environmentName, item.flow.name, 'disabled');
-        treeProvider.refresh();
-        logger.info(`Flow disabled: ${item.flow.properties.displayName}`);
-        void vscode.window.showInformationMessage(
-          `Flow "${item.flow.properties.displayName}" disabled.`
-        );
+        try {
+          await client.setFlowState(item.environmentName, item.flow.name, 'disabled');
+          treeProvider.refresh();
+          logger.info(`Flow disabled: ${item.flow.properties.displayName}`);
+          void vscode.window.showInformationMessage(
+            `Flow "${item.flow.properties.displayName}" disabled.`
+          );
+        } catch (e) {
+          logger.error(e instanceof Error ? e.stack ?? e.message : String(e));
+          void vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e));
+        }
       }
     ),
 
