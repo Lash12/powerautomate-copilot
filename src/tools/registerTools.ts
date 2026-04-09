@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 import type { PowerAutomateClient } from '../api/PowerAutomateClient';
 import type { ContextManager } from '../context/ContextManager';
+import { searchConnectors } from '../data/connectors';
+import type { ConnectorTier } from '../data/connectors';
+import { searchExpressions } from '../data/expressions';
+import type { ExpressionCategory } from '../data/expressions';
+import { validateFlowDefinition } from './validateFlow';
 
 function ok(data: unknown): vscode.LanguageModelToolResult {
   return new vscode.LanguageModelToolResult([
@@ -284,6 +289,66 @@ export function registerAllTools(
       );
       await client.cancelFlowRun(environmentName, flowName, input.runName);
       return ok({ success: true, runName: input.runName });
+    }
+  );
+
+  // ── Static Knowledge Tools + Flow Validator ──────────────────────────────
+  // searchConnectors and getExpressionHelp use only embedded static data.
+  // validateFlow fetches the flow definition via the PP API, then validates it locally.
+
+  register<{ query?: string; category?: string; tier?: string }>(
+    'powerAutomate_searchConnectors',
+    async (input) => {
+      // Normalize tier to match ConnectorTier union ('Standard' | 'Premium')
+      const rawTier = input.tier?.trim() ?? '';
+      const tier =
+        rawTier.toLowerCase() === 'standard'
+          ? ('Standard' as ConnectorTier)
+          : rawTier.toLowerCase() === 'premium'
+            ? ('Premium' as ConnectorTier)
+            : undefined;
+      const results = searchConnectors(input.query, tier);
+      if (input.category) {
+        const cat = input.category.toLowerCase().trim();
+        return ok(results.filter((c) => c.category.toLowerCase().includes(cat)));
+      }
+      return ok(results);
+    }
+  );
+
+  register<{ functionName?: string; category?: string }>(
+    'powerAutomate_getExpressionHelp',
+    async (input) => {
+      // Normalize category to Title Case so 'string' → 'String', 'date' → 'Date', etc.
+      let category: ExpressionCategory | undefined;
+      if (input.category) {
+        const normalized =
+          input.category.trim().charAt(0).toUpperCase() + input.category.trim().slice(1).toLowerCase();
+        category = normalized as ExpressionCategory;
+      }
+      const results = searchExpressions(input.functionName, category);
+      return ok(results);
+    }
+  );
+
+  register<{ flowName?: string; environmentName?: string }>(
+    'powerAutomate_validateFlow',
+    async (input) => {
+      const { environmentName, flowName } = ctx.resolveFlow(
+        input.environmentName,
+        input.flowName
+      );
+      const flow = await client.getFlow(environmentName, flowName);
+      const flowAny = flow as unknown as { properties?: { definition?: unknown } };
+      const definition = flowAny?.properties?.definition ?? flow;
+      const result = validateFlowDefinition(definition);
+      return ok({
+        flowName,
+        score: result.score,
+        issueCount: result.issues.length,
+        issues: result.issues,
+        passed: result.passed,
+      });
     }
   );
 

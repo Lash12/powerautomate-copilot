@@ -480,6 +480,69 @@
             }
           }
         }
+      },
+      {
+        "name": "powerAutomate_searchConnectors",
+        "tags": ["power-automate", "connector", "reference"],
+        "displayName": "Search Power Automate Connectors",
+        "modelDescription": "Searches a built-in reference of 30+ Power Automate connectors with their actions and triggers. Use this to discover what connectors are available, what actions they support, and whether they are Standard or Premium tier. No sign-in required.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Keyword to search across connector names, descriptions, actions, and triggers."
+            },
+            "category": {
+              "type": "string",
+              "description": "Filter by category (e.g. 'Microsoft 365', 'Azure', 'Data', 'Communication')."
+            },
+            "tier": {
+              "type": "string",
+              "enum": ["Standard", "Premium", "All"],
+              "description": "Filter by licensing tier. 'Standard' is included in all plans; 'Premium' requires a premium license. Defaults to All."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_getExpressionHelp",
+        "tags": ["power-automate", "expression", "reference"],
+        "displayName": "Get Expression Function Help",
+        "modelDescription": "Returns reference documentation for Power Automate / Azure Logic Apps expression functions — syntax, examples, return types, and notes. Use this when building flow expressions. No sign-in required.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "functionName": {
+              "type": "string",
+              "description": "Name or partial name of an expression function (e.g. 'formatDateTime', 'concat', 'if')."
+            },
+            "category": {
+              "type": "string",
+              "enum": ["String", "Collection", "Logical", "Conversion", "Math", "Date", "Workflow", "URI"],
+              "description": "Filter results to a specific category."
+            }
+          }
+        }
+      },
+      {
+        "name": "powerAutomate_validateFlow",
+        "tags": ["power-automate", "flow", "validation"],
+        "displayName": "Validate Flow Best Practices",
+        "modelDescription": "Fetches a flow definition and checks it against Power Automate best-practice rules: error handling, approval outcomes, recurrence frequency, nested loops, action naming, HTTP timeouts, and variable initialization. Returns a 0–100 score and a list of actionable issues.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "flowName": {
+              "type": "string",
+              "description": "Flow name/ID. If omitted, uses the active flow."
+            },
+            "environmentName": {
+              "type": "string",
+              "description": "Environment name/ID. If omitted, uses the active environment."
+            }
+          }
+        }
       }
     ]
   },
