@@ -65,15 +65,15 @@ Once signed in, Copilot can use these tools automatically:
 
 | Setting | Default | Description |
 |---|---|---|
-| `powerAutomate.clientId` | `""` | Custom Azure AD client ID. Leave blank to use the shared ID. |
-| `powerAutomate.apiBaseUrl` | `https://api.flow.microsoft.com` | API base URL for sovereign clouds (GCC, GCC High, DoD). |
+| `powerAutomate.clientId` | `""` | Reserved for future use; currently has no effect. |
+| `powerAutomate.apiBaseUrl` | `https://api.powerplatform.com` | Power Platform API base URL. Change for sovereign cloud environments (GCC, GCC High, DoD). |
 | `powerAutomate.confirmDestructiveActions` | `true` | Require confirmation before updating or deleting live flows. |
 
 ## Enterprise / Sovereign Cloud
 
-For GCC, GCC High, or DoD tenants, set `powerAutomate.apiBaseUrl` to the appropriate endpoint in your VS Code settings.
+The extension uses Microsoft first-party API scopes (`api.bap.microsoft.com/.default` and `api.powerplatform.com/.default`) that are pre-authorized in all Microsoft Entra tenants — **no app registration or admin consent is required**.
 
-If your tenant requires admin consent for application permissions, an administrator will need to grant consent for the Power Platform OAuth scopes (`https://service.flow.microsoft.com/user_impersonation`). See the [Microsoft docs](https://learn.microsoft.com/en-us/power-platform/admin/powershell-create-service-principal) for details.
+For GCC, GCC High, or DoD tenants, set `powerAutomate.apiBaseUrl` to the appropriate endpoint. See [docs/azure-app-registration.md](docs/azure-app-registration.md) for the full list of sovereign cloud URLs and troubleshooting guidance.
 
 ## Security
 

@@ -104,7 +104,7 @@ export class AuthProvider {
 
   async signIn(): Promise<void> {
     await vscode.authentication.getSession(PROVIDER_ID, [this.bapScope], {
-      forceNewSession: true,
+      createIfNone: true,
     });
     this._onDidChangeSignInState.fire(true);
   }
