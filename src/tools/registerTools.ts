@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 import type { PowerAutomateClient } from '../api/PowerAutomateClient';
 import type { ContextManager } from '../context/ContextManager';
+import { searchConnectors } from '../data/connectors';
+import type { ConnectorTier } from '../data/connectors';
+import { searchExpressions } from '../data/expressions';
+import type { ExpressionCategory } from '../data/expressions';
+import { validateFlowDefinition } from './validateFlow';
 
 function ok(data: unknown): vscode.LanguageModelToolResult {
   return new vscode.LanguageModelToolResult([
@@ -284,6 +289,53 @@ export function registerAllTools(
       );
       await client.cancelFlowRun(environmentName, flowName, input.runName);
       return ok({ success: true, runName: input.runName });
+    }
+  );
+
+  // ── Static Knowledge Tools (no API calls) ─────────────────────────────────
+
+  register<{ query?: string; category?: string; tier?: string }>(
+    'powerAutomate_searchConnectors',
+    async (input) => {
+      const tier = (input.tier ?? 'All') as ConnectorTier | 'All';
+      const results = searchConnectors(input.query, tier === 'All' ? undefined : tier);
+      if (input.category) {
+        const cat = input.category.toLowerCase();
+        return ok(results.filter((c) => c.category.toLowerCase().includes(cat)));
+      }
+      return ok(results);
+    }
+  );
+
+  register<{ functionName?: string; category?: string }>(
+    'powerAutomate_getExpressionHelp',
+    async (input) => {
+      const results = searchExpressions(
+        input.functionName,
+        input.category as ExpressionCategory | undefined
+      );
+      return ok(results);
+    }
+  );
+
+  register<{ flowName?: string; environmentName?: string }>(
+    'powerAutomate_validateFlow',
+    async (input) => {
+      const { environmentName, flowName } = ctx.resolveFlow(
+        input.environmentName,
+        input.flowName
+      );
+      const flow = await client.getFlow(environmentName, flowName);
+      const flowAny = flow as unknown as { properties?: { definition?: unknown } };
+      const definition = flowAny?.properties?.definition ?? flow;
+      const result = validateFlowDefinition(definition);
+      return ok({
+        flowName,
+        score: result.score,
+        issueCount: result.issues.length,
+        issues: result.issues,
+        passed: result.passed,
+      });
     }
   );
 
