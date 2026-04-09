@@ -47,21 +47,24 @@ interface FlowDefinition {
 
 function flattenActions(
   actions: Record<string, ActionDefinition>,
-  path: string[] = []
-): Array<{ name: string; action: ActionDefinition; depth: number }> {
-  const results: Array<{ name: string; action: ActionDefinition; depth: number }> = [];
+  loopDepth: number = 0
+): Array<{ name: string; action: ActionDefinition; loopDepth: number }> {
+  const results: Array<{ name: string; action: ActionDefinition; loopDepth: number }> = [];
   for (const [name, action] of Object.entries(actions)) {
-    results.push({ name, action, depth: path.length });
+    results.push({ name, action, loopDepth });
+    // Only increment loopDepth when recursing into the body of a loop action.
+    const childLoopDepth =
+      action.type === 'Foreach' || action.type === 'Until' ? loopDepth + 1 : loopDepth;
     if (action.actions) {
-      results.push(...flattenActions(action.actions, [...path, name]));
+      results.push(...flattenActions(action.actions, childLoopDepth));
     }
     if (action.else?.actions) {
-      results.push(...flattenActions(action.else.actions, [...path, name, 'else']));
+      results.push(...flattenActions(action.else.actions, loopDepth));
     }
     if (action.branches) {
       for (const branch of Object.values(action.branches)) {
         if (branch.actions) {
-          results.push(...flattenActions(branch.actions, [...path, name]));
+          results.push(...flattenActions(branch.actions, loopDepth));
         }
       }
     }
@@ -211,13 +214,14 @@ function checkHighFrequencyTrigger(
 }
 
 function checkNestedLoops(
-  allActions: Array<{ name: string; action: ActionDefinition; depth: number }>,
+  allActions: Array<{ name: string; action: ActionDefinition; loopDepth: number }>,
   issues: ValidationIssue[],
   passed: string[]
 ): void {
+  // loopDepth >= 1 means this loop is inside another loop (not just inside a Scope/Condition).
   const nestedLoops = allActions.filter(
-    ({ action, depth }) =>
-      (action.type === 'Foreach' || action.type === 'Until') && depth >= 1
+    ({ action, loopDepth }) =>
+      (action.type === 'Foreach' || action.type === 'Until') && loopDepth >= 1
   );
   if (nestedLoops.length > 0) {
     for (const { name } of nestedLoops) {
@@ -225,7 +229,7 @@ function checkNestedLoops(
         severity: 'warning',
         rule: 'nested-loops',
         message:
-          `Action "${name}" is a loop nested inside another loop or scope. ` +
+          `Action "${name}" is a loop nested inside another loop. ` +
           'Nested loops can cause exponential run durations and high API call counts. ' +
           'Consider batching with Select/Filter or moving logic to a child flow.',
         actionName: name,
@@ -286,12 +290,13 @@ function checkHttpTimeouts(
 }
 
 function checkVariablesInLoops(
-  allActions: Array<{ name: string; action: ActionDefinition; depth: number }>,
+  allActions: Array<{ name: string; action: ActionDefinition; loopDepth: number }>,
   issues: ValidationIssue[],
   passed: string[]
 ): void {
+  // loopDepth >= 1 means this action is inside a Foreach/Until loop body.
   const initInsideLoop = allActions.filter(
-    ({ action, depth }) => action.type === 'InitializeVariable' && depth >= 1
+    ({ action, loopDepth }) => action.type === 'InitializeVariable' && loopDepth >= 1
   );
   if (initInsideLoop.length > 0) {
     for (const { name } of initInsideLoop) {

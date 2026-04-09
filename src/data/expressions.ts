@@ -27,14 +27,15 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     name: 'concat',
     category: 'String',
     description: 'Combines two or more strings and returns the combined string.',
-    syntax: "concat(text1, text2, ...)",
+    syntax: 'concat(text1, text2, ...)',
     example: "concat('Hello', ' ', 'World') → 'Hello World'",
     returns: 'string',
   },
   {
     name: 'length',
     category: 'String',
-    description: 'Returns the number of characters in a string, or the number of items in a collection.',
+    description:
+      'Returns the number of characters in a string, or the number of items in a collection.',
     syntax: 'length(collection)',
     example: "length('Hello') → 5",
     returns: 'integer',
@@ -42,7 +43,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'substring',
     category: 'String',
-    description: 'Returns a portion of a string starting at the specified index for the specified length.',
+    description:
+      'Returns a portion of a string starting at the specified index for the specified length.',
     syntax: 'substring(text, startIndex, length)',
     example: "substring('Hello World', 6, 5) → 'World'",
     returns: 'string',
@@ -107,7 +109,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'lastIndexOf',
     category: 'String',
-    description: 'Returns the starting position of the last occurrence of a substring, or -1 if not found.',
+    description:
+      'Returns the starting position of the last occurrence of a substring, or -1 if not found.',
     syntax: 'lastIndexOf(text, searchText)',
     example: "lastIndexOf('abcabc', 'b') → 4",
     returns: 'integer',
@@ -147,7 +150,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'padLeft',
     category: 'String',
-    description: 'Returns a right-justified string padded on the left with a character to a total length.',
+    description:
+      'Returns a right-justified string padded on the left with a character to a total length.',
     syntax: 'padLeft(text, totalLength, paddingChar)',
     example: "padLeft('123', 6, '0') → '000123'",
     returns: 'string',
@@ -157,7 +161,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'contains',
     category: 'Collection',
-    description: 'Returns true if a string contains a substring, an array contains an item, or an object contains a key.',
+    description:
+      'Returns true if a string contains a substring, an array contains an item, or an object contains a key.',
     syntax: 'contains(collection, value)',
     example: "contains(['a','b','c'], 'b') → true",
     returns: 'boolean',
@@ -167,7 +172,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns true if a string, array, or object is empty.',
     syntax: 'empty(collection)',
-    example: "empty([]) → true",
+    example: 'empty([]) → true',
     returns: 'boolean',
   },
   {
@@ -175,7 +180,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns the first item in an array, or the first character in a string.',
     syntax: 'first(collection)',
-    example: "first([1,2,3]) → 1",
+    example: 'first([1,2,3]) → 1',
     returns: 'any',
   },
   {
@@ -183,7 +188,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns the last item in an array, or the last character in a string.',
     syntax: 'last(collection)',
-    example: "last([1,2,3]) → 3",
+    example: 'last([1,2,3]) → 3',
     returns: 'any',
   },
   {
@@ -191,7 +196,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns an array or object that has only common items between two collections.',
     syntax: 'intersection(collection1, collection2)',
-    example: "intersection([1,2,3], [2,3,4]) → [2,3]",
+    example: 'intersection([1,2,3], [2,3,4]) → [2,3]',
     returns: 'array or object',
   },
   {
@@ -199,7 +204,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns an array or object with all items from two collections (deduped).',
     syntax: 'union(collection1, collection2)',
-    example: "union([1,2], [2,3]) → [1,2,3]",
+    example: 'union([1,2], [2,3]) → [1,2,3]',
     returns: 'array or object',
   },
   {
@@ -207,7 +212,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns all items from an array after skipping the first N items.',
     syntax: 'skip(collection, count)',
-    example: "skip([1,2,3,4], 2) → [3,4]",
+    example: 'skip([1,2,3,4], 2) → [3,4]',
     returns: 'array',
   },
   {
@@ -215,7 +220,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns the first N items from an array.',
     syntax: 'take(collection, count)',
-    example: "take([1,2,3,4], 2) → [1,2]",
+    example: 'take([1,2,3,4], 2) → [1,2]',
     returns: 'array',
   },
   {
@@ -223,24 +228,27 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Reverses the order of items in an array.',
     syntax: 'reverse(array)',
-    example: "reverse([1,2,3]) → [3,2,1]",
+    example: 'reverse([1,2,3]) → [3,2,1]',
     returns: 'array',
   },
   {
     name: 'sort',
     category: 'Collection',
-    description: 'Sorts an array of primitives or objects by a key in ascending or descending order.',
+    description:
+      'Sorts an array of primitives or objects by a key in ascending or descending order.',
     syntax: 'sort(array, sortBy?, sortOrder?)',
-    example: "sort([3,1,2]) → [1,2,3]",
+    example: 'sort([3,1,2]) → [1,2,3]',
     returns: 'array',
-    notes: "sortOrder is 'Ascending' (default) or 'Descending'. sortBy is a key name for arrays of objects.",
+    notes:
+      "sortOrder is 'Ascending' (default) or 'Descending'. sortBy is a key name for arrays of objects.",
   },
   {
     name: 'range',
     category: 'Collection',
-    description: 'Returns an array of integers starting from a specified value for a specified count.',
+    description:
+      'Returns an array of integers starting from a specified value for a specified count.',
     syntax: 'range(startIndex, count)',
-    example: "range(1, 5) → [1,2,3,4,5]",
+    example: 'range(1, 5) → [1,2,3,4,5]',
     returns: 'array',
   },
   {
@@ -248,13 +256,14 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Splits an array into smaller arrays of a specified size.',
     syntax: 'chunk(collection, size)',
-    example: "chunk([1,2,3,4,5], 2) → [[1,2],[3,4],[5]]",
+    example: 'chunk([1,2,3,4,5], 2) → [[1,2],[3,4],[5]]',
     returns: 'array of arrays',
   },
   {
     name: 'join',
     category: 'Collection',
-    description: 'Returns a string that has all the items in an array joined by the specified delimiter.',
+    description:
+      'Returns a string that has all the items in an array joined by the specified delimiter.',
     syntax: 'join(collection, delimiter)',
     example: "join(['a','b','c'], ',') → 'a,b,c'",
     returns: 'string',
@@ -264,7 +273,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Collection',
     description: 'Returns the current item in an Apply to each loop iteration.',
     syntax: 'item()',
-    example: "item() → current element in the loop",
+    example: 'item() → current element in the loop',
     returns: 'any',
     notes: 'Only valid inside an Apply to each action.',
   },
@@ -299,7 +308,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Returns true when all conditions are true.',
     syntax: 'and(expr1, expr2, ...)',
-    example: "and(true, true) → true",
+    example: 'and(true, true) → true',
     returns: 'boolean',
   },
   {
@@ -307,7 +316,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Returns true when at least one condition is true.',
     syntax: 'or(expr1, expr2, ...)',
-    example: "or(false, true) → true",
+    example: 'or(false, true) → true',
     returns: 'boolean',
   },
   {
@@ -315,7 +324,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Inverts a boolean value.',
     syntax: 'not(expr)',
-    example: "not(false) → true",
+    example: 'not(false) → true',
     returns: 'boolean',
   },
   {
@@ -323,7 +332,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Returns true if both values are equal.',
     syntax: 'equals(value1, value2)',
-    example: "equals(1, 1) → true",
+    example: 'equals(1, 1) → true',
     returns: 'boolean',
   },
   {
@@ -331,7 +340,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Returns true if value1 is greater than value2.',
     syntax: 'greater(value1, value2)',
-    example: "greater(10, 5) → true",
+    example: 'greater(10, 5) → true',
     returns: 'boolean',
   },
   {
@@ -339,7 +348,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Returns true if value1 is greater than or equal to value2.',
     syntax: 'greaterOrEquals(value1, value2)',
-    example: "greaterOrEquals(5, 5) → true",
+    example: 'greaterOrEquals(5, 5) → true',
     returns: 'boolean',
   },
   {
@@ -347,7 +356,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Returns true if value1 is less than value2.',
     syntax: 'less(value1, value2)',
-    example: "less(3, 5) → true",
+    example: 'less(3, 5) → true',
     returns: 'boolean',
   },
   {
@@ -355,7 +364,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Logical',
     description: 'Returns true if value1 is less than or equal to value2.',
     syntax: 'lessOrEquals(value1, value2)',
-    example: "lessOrEquals(5, 5) → true",
+    example: 'lessOrEquals(5, 5) → true',
     returns: 'boolean',
   },
   {
@@ -403,9 +412,10 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'json',
     category: 'Conversion',
-    description: 'Converts a JSON-formatted string to a JavaScript Object Notation (JSON) type value or object.',
+    description:
+      'Converts a JSON-formatted string to a JavaScript Object Notation (JSON) type value or object.',
     syntax: 'json(value)',
-    example: "json('{\"name\":\"Alice\"}') → { name: 'Alice' }",
+    example: 'json(\'{"name":"Alice"}\') → { name: \'Alice\' }',
     returns: 'object or array',
   },
   {
@@ -477,7 +487,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Conversion',
     description: 'Converts a JSON object to an XML string.',
     syntax: 'xml(value)',
-    example: "xml(json('{\"root\":{\"name\":\"Alice\"}}'))",
+    example: 'xml(json(\'{"root":{"name":"Alice"}}\'))',
     returns: 'string (XML)',
   },
   {
@@ -511,7 +521,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns the sum of two numbers.',
     syntax: 'add(summand1, summand2)',
-    example: "add(3, 5) → 8",
+    example: 'add(3, 5) → 8',
     returns: 'number',
   },
   {
@@ -519,7 +529,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns the result of subtracting the second number from the first.',
     syntax: 'sub(minuend, subtrahend)',
-    example: "sub(10, 3) → 7",
+    example: 'sub(10, 3) → 7',
     returns: 'number',
   },
   {
@@ -527,7 +537,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns the product of two numbers.',
     syntax: 'mul(multiplicand1, multiplicand2)',
-    example: "mul(4, 5) → 20",
+    example: 'mul(4, 5) → 20',
     returns: 'number',
   },
   {
@@ -535,7 +545,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns the quotient of dividing two numbers.',
     syntax: 'div(dividend, divisor)',
-    example: "div(10, 4) → 2.5",
+    example: 'div(10, 4) → 2.5',
     returns: 'number',
   },
   {
@@ -543,7 +553,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns the remainder from dividing two numbers.',
     syntax: 'mod(dividend, divisor)',
-    example: "mod(10, 3) → 1",
+    example: 'mod(10, 3) → 1',
     returns: 'integer',
   },
   {
@@ -551,7 +561,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns the highest value from an array of numbers, or from two numbers.',
     syntax: 'max(collection or value1, value2)',
-    example: "max([1,5,3]) → 5",
+    example: 'max([1,5,3]) → 5',
     returns: 'number',
   },
   {
@@ -559,7 +569,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns the lowest value from an array of numbers, or from two numbers.',
     syntax: 'min(collection or value1, value2)',
-    example: "min([1,5,3]) → 1",
+    example: 'min([1,5,3]) → 1',
     returns: 'number',
   },
   {
@@ -567,7 +577,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Math',
     description: 'Returns a random integer between a minimum and maximum value (inclusive).',
     syntax: 'rand(minValue, maxValue)',
-    example: "rand(1, 100) → 42 (example)",
+    example: 'rand(1, 100) → 42 (example)',
     returns: 'integer',
   },
 
@@ -576,7 +586,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     name: 'utcNow',
     category: 'Date',
     description: 'Returns the current UTC timestamp as a string.',
-    syntax: "utcNow(format?)",
+    syntax: 'utcNow(format?)',
     example: "utcNow() → '2018-04-15T13:00:00.000Z'",
     returns: 'string',
     notes: 'Optional format string (e.g., yyyy-MM-dd). Defaults to ISO 8601.',
@@ -629,7 +639,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     syntax: 'addToTime(timestamp, interval, timeUnit, format?)',
     example: "addToTime('2018-01-01T00:00:00Z', 1, 'Week') → '2018-01-08T00:00:00.000Z'",
     returns: 'string',
-    notes: "timeUnit can be: Second, Minute, Hour, Day, Week, Month, Year",
+    notes: 'timeUnit can be: Second, Minute, Hour, Day, Week, Month, Year',
   },
   {
     name: 'subtractFromTime',
@@ -706,7 +716,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'ticks',
     category: 'Date',
-    description: 'Returns the ticks property value (100-nanosecond intervals since 00:00:00 UTC January 1, 0001) for a timestamp.',
+    description:
+      'Returns the ticks property value (100-nanosecond intervals since 00:00:00 UTC January 1, 0001) for a timestamp.',
     syntax: 'ticks(timestamp)',
     example: "ticks('2018-01-01T00:00:00Z') → 636503904000000000",
     returns: 'integer',
@@ -725,7 +736,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Date',
     description: 'Converts a timestamp from the source time zone to the target time zone.',
     syntax: 'convertTimeZone(timestamp, sourceTimeZone, destinationTimeZone, format?)',
-    example: "convertTimeZone('2018-01-01T00:00:00Z', 'UTC', 'Eastern Standard Time', 'yyyy-MM-dd HH:mm')",
+    example:
+      "convertTimeZone('2018-01-01T00:00:00Z', 'UTC', 'Eastern Standard Time', 'yyyy-MM-dd HH:mm')",
     returns: 'string',
     notes: 'Use Windows Time Zone IDs (e.g., "Eastern Standard Time", "Pacific Standard Time").',
   },
@@ -750,7 +762,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'triggerBody',
     category: 'Workflow',
-    description: 'Returns the body content of the trigger at runtime. Shorthand for trigger().outputs.body.',
+    description:
+      'Returns the body content of the trigger at runtime. Shorthand for trigger().outputs.body.',
     syntax: 'triggerBody()',
     example: "triggerBody()?['field'] → value of 'field' in the trigger payload",
     returns: 'object',
@@ -774,7 +787,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'body',
     category: 'Workflow',
-    description: "Returns an action's body output at runtime. Shorthand for actions('name').outputs.body.",
+    description:
+      "Returns an action's body output at runtime. Shorthand for actions('name').outputs.body.",
     syntax: "body('actionName')",
     example: "body('Get_items')?['value']",
     returns: 'object',
@@ -782,7 +796,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'outputs',
     category: 'Workflow',
-    description: "Returns all outputs from a named action at runtime.",
+    description: 'Returns all outputs from a named action at runtime.',
     syntax: "outputs('actionName')",
     example: "outputs('Http')?['statusCode']",
     returns: 'object',
@@ -790,7 +804,8 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'actions',
     category: 'Workflow',
-    description: "Returns all properties of a named action at runtime (outputs, status, startTime, etc.).",
+    description:
+      'Returns all properties of a named action at runtime (outputs, status, startTime, etc.).',
     syntax: "actions('actionName')",
     example: "actions('Send_an_email')?['status']",
     returns: 'object',
@@ -798,7 +813,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
   {
     name: 'result',
     category: 'Workflow',
-    description: "Returns the results of all top-level actions inside a named Scope action.",
+    description: 'Returns the results of all top-level actions inside a named Scope action.',
     syntax: "result('scopeName')",
     example: "result('Try_scope') → array of action results",
     returns: 'array',
@@ -893,7 +908,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Conversion',
     description: 'Adds a property and its value to a JSON object and returns the updated object.',
     syntax: 'addProperty(object, property, value)',
-    example: "addProperty(json('{\"a\":1}'), 'b', 2) → {\"a\":1,\"b\":2}",
+    example: 'addProperty(json(\'{"a":1}\'), \'b\', 2) → {"a":1,"b":2}',
     returns: 'object',
   },
   {
@@ -901,7 +916,7 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Conversion',
     description: 'Removes a property from a JSON object and returns the updated object.',
     syntax: 'removeProperty(object, property)',
-    example: "removeProperty(json('{\"a\":1,\"b\":2}'), 'b') → {\"a\":1}",
+    example: 'removeProperty(json(\'{"a":1,"b":2}\'), \'b\') → {"a":1}',
     returns: 'object',
   },
   {
@@ -909,13 +924,20 @@ export const EXPRESSION_FUNCTIONS: ExpressionFunction[] = [
     category: 'Conversion',
     description: 'Sets a property value on a JSON object and returns the updated object.',
     syntax: 'setProperty(object, property, value)',
-    example: "setProperty(json('{\"a\":1}'), 'a', 99) → {\"a\":99}",
+    example: 'setProperty(json(\'{"a":1}\'), \'a\', 99) → {"a":99}',
     returns: 'object',
   },
 ];
 
 export const EXPRESSION_CATEGORIES: ExpressionCategory[] = [
-  'String', 'Collection', 'Logical', 'Conversion', 'Math', 'Date', 'Workflow', 'URI',
+  'String',
+  'Collection',
+  'Logical',
+  'Conversion',
+  'Math',
+  'Date',
+  'Workflow',
+  'URI',
 ];
 
 /**
@@ -929,7 +951,9 @@ export function searchExpressions(
   const q = query?.toLowerCase() ?? '';
   return EXPRESSION_FUNCTIONS.filter((fn) => {
     const categoryMatch = !category || fn.category === category;
-    if (!q) {return categoryMatch;}
+    if (!q) {
+      return categoryMatch;
+    }
     const textMatch =
       fn.name.toLowerCase().includes(q) ||
       fn.description.toLowerCase().includes(q) ||

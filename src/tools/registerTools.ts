@@ -292,15 +292,24 @@ export function registerAllTools(
     }
   );
 
-  // ── Static Knowledge Tools (no API calls) ─────────────────────────────────
+  // ── Static Knowledge Tools + Flow Validator ──────────────────────────────
+  // searchConnectors and getExpressionHelp use only embedded static data.
+  // validateFlow fetches the flow definition via the PP API, then validates it locally.
 
   register<{ query?: string; category?: string; tier?: string }>(
     'powerAutomate_searchConnectors',
     async (input) => {
-      const tier = (input.tier ?? 'All') as ConnectorTier | 'All';
-      const results = searchConnectors(input.query, tier === 'All' ? undefined : tier);
+      // Normalize tier to match ConnectorTier union ('Standard' | 'Premium')
+      const rawTier = input.tier?.trim() ?? '';
+      const tier =
+        rawTier.toLowerCase() === 'standard'
+          ? ('Standard' as ConnectorTier)
+          : rawTier.toLowerCase() === 'premium'
+            ? ('Premium' as ConnectorTier)
+            : undefined;
+      const results = searchConnectors(input.query, tier);
       if (input.category) {
-        const cat = input.category.toLowerCase();
+        const cat = input.category.toLowerCase().trim();
         return ok(results.filter((c) => c.category.toLowerCase().includes(cat)));
       }
       return ok(results);
@@ -310,10 +319,14 @@ export function registerAllTools(
   register<{ functionName?: string; category?: string }>(
     'powerAutomate_getExpressionHelp',
     async (input) => {
-      const results = searchExpressions(
-        input.functionName,
-        input.category as ExpressionCategory | undefined
-      );
+      // Normalize category to Title Case so 'string' → 'String', 'date' → 'Date', etc.
+      let category: ExpressionCategory | undefined;
+      if (input.category) {
+        const normalized =
+          input.category.trim().charAt(0).toUpperCase() + input.category.trim().slice(1).toLowerCase();
+        category = normalized as ExpressionCategory;
+      }
+      const results = searchExpressions(input.functionName, category);
       return ok(results);
     }
   );
